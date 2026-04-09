@@ -16,4 +16,12 @@ defmodule AutomataTest do
 
     assert result == [0]
   end
+
+  test "e_determinize funciona" do
+  nfa = Automata.nfa_example()
+
+  dfa = Automata.e_determinize(nfa)
+
+  assert length(dfa.states) > 0
+end
 end

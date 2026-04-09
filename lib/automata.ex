@@ -83,4 +83,58 @@ defmodule Automata do
     closure(rest ++ new_states, visited ++ new_states, nfa)
   end
 
+  #funcion e_determinize/1
+  def e_determinize(nfa) do
+  start = e_closure(nfa, [nfa.start])
+
+  {states, transitions} = build_e_dfa([start], [], %{}, nfa)
+
+  final_states =
+    Enum.filter(states, fn state ->
+      Enum.any?(state, fn s -> s in nfa.final end)
+    end)
+
+  %{
+    states: states,
+    alphabet: nfa.alphabet,
+    transitions: transitions,
+    start: start,
+    final: final_states
+  }
+end
+
+defp build_e_dfa([], visited, transitions, _nfa) do
+  {visited, transitions}
+end
+
+defp build_e_dfa([current | rest], visited, transitions, nfa) do
+  if current in visited do
+    build_e_dfa(rest, visited, transitions, nfa)
+  else
+    {new_queue, new_transitions} =
+      Enum.reduce(nfa.alphabet, {rest, transitions}, fn symbol, {queue, trans} ->
+
+        move =
+          Enum.flat_map(current, fn s ->
+            Map.get(nfa.transitions, {s, symbol}, [])
+          end)
+
+        next =
+          move
+          |> Enum.flat_map(fn s -> e_closure(nfa, [s]) end)
+          |> Enum.uniq()
+
+        trans = Map.put(trans, {current, symbol}, next)
+
+        if next == [] or next in visited or next in queue do
+          {queue, trans}
+        else
+          {queue ++ [next], trans}
+        end
+      end)
+
+    build_e_dfa(new_queue, visited ++ [current], new_transitions, nfa)
+  end
+end
+
 end
