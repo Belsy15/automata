@@ -67,4 +67,20 @@ defmodule Automata do
     end
   end
 
+  # epsilon closure (AHORA SÍ dentro del módulo)
+  def e_closure(nfa, states) do
+    closure(states, states, nfa)
+  end
+
+  defp closure([], visited, _nfa), do: visited
+
+  defp closure([current | rest], visited, nfa) do
+    next = Map.get(nfa.transitions, {current, :e}, [])
+
+    new_states =
+      Enum.filter(next, fn s -> not (s in visited) end)
+
+    closure(rest ++ new_states, visited ++ new_states, nfa)
+  end
+
 end
